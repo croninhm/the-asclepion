@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Asclepion — MCAT Resource Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14161B;
+    --surface:#1C1F26;
+    --surface-raised:#232630;
+    --border:#2C303A;
+    --border-soft:#3A3F4B;
+    --ink:#EDEEF0;
+    --ink-soft:#98A0AC;
+    --brand:#D9A54A;
+    --brand-hover:#EFC272;
+    --free:#34D399;
+    --paid:#F0975A;
+    --community:#C084FC;
+    --phase1:#5B8DEF; --phase1-tint:#1E2A3D;
+    --phase2:#34D399; --phase2-tint:#173328;
+    --phase3:#F0975A; --phase3-tint:#3A2B18;
+    --restday-bg:#20232B;
+    --exam-marker:#C084FC;
+    --error:#F87171;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background-color:var(--bg);
+    background-image:radial-gradient(ellipse 900px 420px at 50% -8%, rgba(217,165,74,0.09), transparent 70%);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.55;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:0 24px;}
+
+  header{padding:64px 0 40px;}
+  .brand{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+  .asclepius-icon{width:34px;height:52px;color:var(--brand);flex-shrink:0;}
+  .brand-text h1{
+    font-family:'Fraunces',serif;font-weight:600;
+    font-size:clamp(28px,4.2vw,40px);margin:0;color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+  .brand-text .subtitle{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);
+    margin:4px 0 0;
+  }
+  .lede{font-size:16.5px;color:var(--ink-soft);max-width:60ch;margin:0;}
+
+  nav.tabs{
+    display:flex;gap:0;margin:34px 0 0;
+    border-bottom:1px solid var(--border);flex-wrap:wrap;
+  }
+  nav.tabs button{
+    font-family:'Inter',sans-serif;font-weight:500;font-size:14.5px;
+    background:none;border:none;color:var(--ink-soft);
+    padding:12px 4px;margin-right:24px;cursor:pointer;
+    border-bottom:2px solid transparent;transition:color .15s, border-color .15s;
+  }
+  nav.tabs button:hover{color:var(--ink);}
+  nav.tabs button.active{color:var(--ink);border-bottom-color:var(--brand);}
+
+  main{padding:40px 0 20px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .group{margin-bottom:38px;}
+  .group h2{font-family:'Fraunces',serif;font-weight:600;font-size:21px;margin:0 0 4px;color:var(--ink);}
+  .group .group-note{color:var(--ink-soft);font-size:14px;margin:0 0 18px;}
+
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .card{
+    display:flex;flex-direction:column;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px 18px 16px;
+    text-decoration:none;color:var(--ink);
+    transition:box-shadow .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .card:hover{
+    border-color:var(--border-soft);
+    background:var(--surface-raised);
+    box-shadow:0 0 0 1px rgba(217,165,74,0.12), 0 10px 24px rgba(0,0,0,0.35);
+  }
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;}
+  .card h3{font-family:'Fraunces',serif;font-size:17.5px;font-weight:600;margin:0;color:var(--ink);}
+  .tag{
+    flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    letter-spacing:0.04em;text-transform:uppercase;padding:3px 7px;border-radius:4px;
+    color:#14161B;white-space:nowrap;font-weight:500;
+  }
+  .tag.free{background:var(--free);}
+  .tag.paid{background:var(--paid);}
+  .tag.community{background:var(--community);}
+  .tag.wip{background:var(--ink-soft);}
+  .card p{font-size:13.8px;color:var(--ink-soft);margin:0 0 14px;flex-grow:1;}
+  .card .go{font-size:13px;font-weight:500;color:var(--brand);}
+  .card.disabled{opacity:0.6;cursor:default;}
+  .card.disabled:hover{background:var(--surface);box-shadow:none;border-color:var(--border);}
+  .card.disabled .go{color:var(--ink-soft);}
+
+  /* schedule tab */
+  .schedule-form{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:10px;}
+  .field{display:flex;flex-direction:column;gap:6px;font-size:13.5px;}
+  .field label{color:var(--ink-soft);font-weight:500;}
+  .field input, .field select{
+    font-family:'Inter',sans-serif;font-size:14px;padding:8px 10px;
+    border:1px solid var(--border);border-radius:6px;
+    background:var(--surface-raised);color:var(--ink);
+  }
+  .field input::placeholder{color:var(--ink-soft);}
+  .field input:focus, .field select:focus{outline:1.5px solid var(--brand);border-color:var(--brand);}
+  .schedule-form button{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;padding:9px 16px;
+    border-radius:6px;border:none;background:var(--brand);color:#14161B;cursor:pointer;
+    transition:background .15s;
+  }
+  .schedule-form button:hover{background:var(--brand-hover);}
+  .error{color:var(--error);font-size:13.5px;margin-top:6px;}
+  .warning-note{
+    background:#2E2412;border:1px solid #5C4321;color:#E8C98A;
+    font-size:13.5px;padding:10px 14px;border-radius:8px;margin-bottom:20px;display:none;
+  }
+
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
+  .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;}
+  .summary-card .num{display:block;font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--ink);}
+  .summary-card .label{font-size:12.5px;color:var(--ink-soft);}
+
+  .phase-legend{display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--ink-soft);}
+  .phase-item .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;}
+
+  .cal-actions{display:flex;gap:10px;margin-bottom:20px;}
+  .cal-actions button{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;padding:8px 14px;
+    border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .cal-actions button:hover{background:var(--surface-raised);border-color:var(--border-soft);}
+
+  .cal-month{margin-bottom:26px;}
+  .cal-month h4{font-family:'Fraunces',serif;font-size:16px;margin:0 0 10px;color:var(--ink);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-dow{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);text-align:center;padding-bottom:4px;}
+  .cal-cell{
+    position:relative;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;border-radius:6px;background:transparent;color:var(--ink-soft);
+  }
+  .cal-cell.out{color:#454A55;}
+  .cal-cell.empty{visibility:hidden;}
+  .cal-cell.rest{background:var(--restday-bg);}
+  .cal-cell.study.phase1{background:var(--phase1-tint);color:var(--ink);}
+  .cal-cell.study.phase2{background:var(--phase2-tint);color:var(--ink);}
+  .cal-cell.study.phase3{background:var(--phase3-tint);color:var(--ink);}
+  .cal-cell.study.taper{background:var(--restday-bg);color:var(--ink);}
+  .cal-cell.exam{box-shadow:inset 0 0 0 2px var(--exam-marker);font-weight:600;}
+  .cal-cell.test{background:var(--brand);color:#14161B;font-weight:700;}
+  .cal-cell i{position:absolute;bottom:0px;right:2px;font-size:8px;font-style:normal;}
+
+  footer{margin-top:50px;border-top:1px solid var(--border);padding:28px 0 56px;}
+  footer p{font-size:13px;color:var(--ink-soft);max-width:70ch;margin:0 0 6px;}
+
+  @media (max-width:520px){
+    header{padding:44px 0 28px;}
+    nav.tabs button{margin-right:16px;}
+  }
+  @media print{
+    body{background:#fff;color:#000;}
+    nav.tabs, .schedule-form, .cal-actions, header .lede{display:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="asclepius-icon" viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="50" y1="16" x2="50" y2="140" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        <path d="M50,32 C74,40 74,56 50,62 C26,68 26,84 50,90 C74,96 74,112 50,118 C40,121 35,125 38,130"
+              stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <ellipse cx="50" cy="24" rx="9" ry="12" stroke="currentColor" stroke-width="5"/>
+        <circle cx="53" cy="21" r="1.6" fill="currentColor"/>
+      </svg>
+      <div class="brand-text">
+        <h1>The Asclepion</h1>
+        <p class="subtitle">MCAT Resource Hub</p>
+      </div>
+    </div>
+    <p class="lede">A working list of MCAT prep material — what's free, what's worth paying for, where premeds talk to each other, and a schedule builder to plan the time in between.</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="active" data-tab="free">Free</button>
+    <button data-tab="paid">Paid &amp; Official</button>
+    <button data-tab="community">Community</button>
+    <button data-tab="schedule">Study Schedule</button>
+  </nav>
+
+  <main>
+
+    <!-- FREE -->
+    <section class="panel active" id="free">
+      <div class="group">
+        <h2>Content Review</h2>
+        <p class="group-note">Learn the material for the first time, or fill in gaps.</p>
+        <div class="card-grid">
+          <a class="card" href="https://www.khanacademy.org/test-prep/mcat" target="_blank" rel="noopener">
+            <div class="card-top"><h3>Khan Academy MCAT Course</h3><span class="tag free">Free</span></div>
+            <p>Free videos and over 2,800 practice questions across all four sections, developed with AAMC input.</p>
+            <span class="go">khanacademy.org →</span>
+          </a>
+          <a class="card" href="https://students-residents.aamc.org/prepare-mcat-exam/free-planning-and-study-resources" target="_blank" rel="noopener">
+            <div class="card-top"><h3>AAMC Free Planning &amp; Study Resources</h3><span class="tag free">Free</span></div>
+            <p>The official content outline, study planning tools, and links to open-access textbooks covering every topic on the exam.</p>
+            <span class="go">aamc.org →</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Practice Questions</h2>
+        <p class="group-note">Test what you actually retained.</p>
+        <div class="card-grid">
+          <a class="card" href="https://gradschool.uworld.com/mcat/free-practice-test-sample-questions/" target="_blank" rel="noopener">
+            <div class="card-top"><h3>UWorld Sample Questions</h3><span class="tag free">Free</span></div>
+            <p>A 7-day trial (no card required) unlocks 100 real UWorld questions with full explanations, across all sections.</p>
+            <span class="go">uworld.com →</span>
+          </a>
+          <a class="card" href="https://students-residents.aamc.org/prepare-mcat-exam/free-planning-and-study-resources" target="_blank" rel="noopener">
+            <div class="card-top"><h3>AAMC Sample Question Guide</h3><span class="tag free">Free</span></div>
+            <p>12 official questions, three from each section, so you know what the real format looks like before you commit study time to it.</p>
+            <span class="go">aamc.org →</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>CARS</h2>
+        <p class="group-note">Daily reps are what move this score, not cramming.</p>
+        <div class="card-grid">
+          <a class="card" href="https://jackwestin.com" target="_blank" rel="noopener">
+            <div class="card-top"><h3>Jack Westin Daily CARS Passages</h3><span class="tag free">Free</span></div>
+            <p>A new AAMC-style passage every morning with explanations. A free account also unlocks their digital textbooks and question bank.</p>
+            <span class="go">jackwestin.com →</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Flashcards</h2>
+        <p class="group-note">Spaced repetition running in the background of your whole timeline.</p>
+        <div class="card-grid">
+          <a class="card" href="https://ankiweb.net/shared/decks/" target="_blank" rel="noopener">
+            <div class="card-top"><h3>Community Anki Decks</h3><span class="tag free">Free</span></div>
+            <p>Search "MCAT" on AnkiWeb's shared deck library. MileDown, Jack Sparrow, and Mr. Pankow's Psych/Soc deck are the ones most students settle on.</p>
+            <span class="go">ankiweb.net →</span>
+          </a>
+          <div class="card disabled">
+            <div class="card-top"><h3>AI Flashcard Generator</h3><span class="tag wip">In progress</span></div>
+            <p>Paste your notes, get flashcards back, and draw from a shared deck bank other premeds are building. Not live yet.</p>
+            <span class="go">Check back soon</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Full-Length Exams</h2>
+        <p class="group-note">Save these — closest thing to real test-day conditions.</p>
+        <div class="card-grid">
+          <a class="card" href="https://students-residents.aamc.org/prepare-mcat-exam/free-planning-and-study-resources" target="_blank" rel="noopener">
+            <div class="card-top"><h3>AAMC Free Practice Exams</h3><span class="tag free">Free</span></div>
+            <p>One scored, one unscored, both built from retired MCAT questions with the same interface and timing as the real thing.</p>
+            <span class="go">aamc.org →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAID -->
+    <section class="panel" id="paid">
+      <div class="group">
+        <h2>Question Banks &amp; Courses</h2>
+        <p class="group-note">Where most people end up spending money, if they spend any.</p>
+        <div class="card-grid">
+          <a class="card" href="https://gradschool.uworld.com/mcat/question-bank/" target="_blank" rel="noopener">
+            <div class="card-top"><h3>UWorld MCAT QBank</h3><span class="tag paid">Paid</span></div>
+            <p>3,000+ questions with detailed visual explanations. Widely considered the strongest standalone question bank.</p>
+            <span class="go">uworld.com →</span>
+          </a>
+          <a class="card" href="https://www.kaptest.com/mcat" target="_blank" rel="noopener">
+            <div class="card-top"><h3>Kaplan MCAT Prep</h3><span class="tag paid">Paid</span></div>
+            <p>Full courses (in-person, live online, or self-paced) with a large question bank, practice exams, and a score guarantee.</p>
+            <span class="go">kaptest.com →</span>
+          </a>
+        </div>
+      </div>
+      <div class="group">
+        <h2>AAMC Official Prep</h2>
+        <p class="group-note">Written by the same people who write the real exam.</p>
+        <div class="card-grid">
+          <a class="card" href="https://students-residents.aamc.org/prepare-mcat-exam/practice-mcat-exam-official-low-cost-products" target="_blank" rel="noopener">
+            <div class="card-top"><h3>AAMC Official Prep Products</h3><span class="tag paid">Paid</span></div>
+            <p>Question packs, section banks, and additional full-length exams. Individual full-length exams run $35 each; the full online bundle is around $320.</p>
+            <span class="go">aamc.org →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMMUNITY -->
+    <section class="panel" id="community">
+      <div class="group">
+        <h2>Reddit</h2>
+        <p class="group-note">Where most premeds actually ask their questions.</p>
+        <div class="card-grid">
+          <a class="card" href="https://www.reddit.com/r/Mcat/" target="_blank" rel="noopener">
+            <div class="card-top"><h3>r/Mcat</h3><span class="tag community">Community</span></div>
+            <p>Score discussions, study logs, resource debates, and a searchable history of nearly every question you'll have during prep.</p>
+            <span class="go">reddit.com →</span>
+          </a>
+          <a class="card" href="https://www.reddit.com/r/premed/" target="_blank" rel="noopener">
+            <div class="card-top"><h3>r/premed</h3><span class="tag community">Community</span></div>
+            <p>Broader premed questions — applications, extracurriculars, GPA strategy — for the parts of this process that aren't the MCAT itself.</p>
+            <span class="go">reddit.com →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section class="panel" id="schedule">
+      <div class="group">
+        <h2>Build a Study Schedule</h2>
+        <p class="group-note">Enter your test date and availability. This lays out content review, practice, and full-length exam windows up to test day.</p>
+        <form id="schedule-form" class="schedule-form">
+          <div class="field">
+            <label for="test-date">Test date (MM/DD/YYYY)</label>
+            <input type="text" id="test-date" placeholder="MM/DD/YYYY" inputmode="numeric" maxlength="10" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="days-per-week">Study days / week</label>
+            <select id="days-per-week">
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="hours-per-day">Hours / study day</label>
+            <input type="number" id="hours-per-day" min="1" max="12" step="0.5" value="3">
+          </div>
+          <button type="submit">Build schedule</button>
+        </form>
+        <p id="schedule-error" class="error" style="display:none;"></p>
+        <p id="schedule-warning" class="warning-note"></p>
+      </div>
+
+      <div id="schedule-output" style="display:none;">
+        <div class="group">
+          <div class="summary-grid">
+            <div class="summary-card"><span class="num" id="sum-weeks">–</span><span class="label">Weeks left</span></div>
+            <div class="summary-card"><span class="num" id="sum-studydays">–</span><span class="label">Study days</span></div>
+            <div class="summary-card"><span class="num" id="sum-hours">–</span><span class="label">Total study hours</span></div>
+            <div class="summary-card"><span class="num" id="sum-exams">–</span><span class="label">Full-length exams</span></div>
+          </div>
+        </div>
+
+        <div class="group">
+          <h2>Phases</h2>
+          <div class="phase-legend">
+            <div class="phase-item"><span class="dot" style="background:var(--phase1)"></span>Content Review — <span id="phase1-range"></span></div>
+            <div class="phase-item"><span class="dot" style="background:var(--phase2)"></span>Practice &amp; Targeted Review — <span id="phase2-range"></span></div>
+            <div class="phase-item"><span class="dot" style="background:var(--phase3)"></span>Full-Lengths &amp; Final Review — <span id="phase3-range"></span></div>
+            <div class="phase-item"><span class="dot" style="background:var(--restday-bg);box-shadow:inset 0 0 0 1px var(--border)"></span>Rest days — not counted toward hours</div>
+            <div class="phase-item"><span class="dot" style="background:var(--surface);box-shadow:inset 0 0 0 2px var(--exam-marker)"></span>Ringed day — full-length practice exam</div>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="cal-actions">
+            <button id="download-ics" type="button">Download as calendar file (.ics)</button>
+            <button id="print-schedule" type="button">Print</button>
+          </div>
+          <div id="calendar-container"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Independently maintained and not affiliated with, sponsored by, or endorsed by the AAMC, UWorld, or Kaplan. MCAT® is a registered trademark of the AAMC. Pricing and availability at linked sites can change. The study schedule is a general planning heuristic, not personalized academic advice.</p>
+  </footer>
+</div>
+
+<script>
+  // ---- Tabs ----
+  const buttons = document.querySelectorAll('nav.tabs button');
+  const panels = document.querySelectorAll('.panel');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---- Study schedule ----
+  const dateInput = document.getElementById('test-date');
+
+  dateInput.addEventListener('input', (e) => {
+    let digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+    let out = digits.slice(0, 2);
+    if (digits.length >= 3) out += '/' + digits.slice(2, 4);
+    if (digits.length >= 5) out += '/' + digits.slice(4, 8);
+    e.target.value = out;
+  });
+
+  function parseMMDDYYYY(str){
+    const m = str.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) return null;
+    const month = parseInt(m[1],10), day = parseInt(m[2],10), year = parseInt(m[3],10);
+    if (month < 1 || month > 12) return null;
+    const d = new Date(year, month-1, day);
+    if (d.getFullYear() !== year || d.getMonth() !== month-1 || d.getDate() !== day) return null;
+    return d;
+  }
+
+  const PHASE_LABELS = {
+    phase1:'Content Review',
+    phase2:'Practice & Targeted Review',
+    phase3:'Full-Length Exams & Final Review',
+    taper:'Light Review / Rest'
+  };
+
+  let currentSchedule = null;
+
+  function computeSchedule(test, daysPerWeek, hoursPerDay){
+    const start = new Date(); start.setHours(0,0,0,0);
+    const totalDays = Math.round((test - start) / 86400000);
+    if (totalDays < 1) return { error: 'Pick a test date that is in the future.' };
+
+    const order = [1,2,3,4,5,6,0];
+    const studyWeekdays = new Set(order.slice(0, daysPerWeek));
+
+    const p1End = new Date(start); p1End.setDate(start.getDate() + Math.floor(totalDays*0.5));
+    const p2End = new Date(start); p2End.setDate(start.getDate() + Math.floor(totalDays*0.8));
+    const taperDays = totalDays >= 10 ? 2 : 0;
+    const p3End = new Date(test); p3End.setDate(test.getDate() - 1 - taperDays);
+
+    const days = [];
+    let sinceLastExam = 999;
+    let examCount = 0;
+
+    for (let i = 0; i <= totalDays; i++){
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      const isTest = i === totalDays;
+      const isStudyDay = !isTest && studyWeekdays.has(d.getDay());
+      let phase = null;
+      if (!isTest){
+        if (d <= p1End) phase = 'phase1';
+        else if (d <= p2End) phase = 'phase2';
+        else if (d <= p3End) phase = 'phase3';
+        else phase = 'taper';
+      }
+      let isExam = false;
+      if (phase === 'phase3' && isStudyDay){
+        sinceLastExam++;
+        if (sinceLastExam >= 7){ isExam = true; sinceLastExam = 0; examCount++; }
+      }
+      days.push({ date: d, phase, isStudyDay, isExam, isTest });
+    }
+
+    const studyDaysCount = days.filter(d => d.isStudyDay).length;
+    const totalHours = Math.round(studyDaysCount * hoursPerDay);
+
+    return {
+      start, test, totalDays, days, studyDaysCount, totalHours, examCount,
+      p1Range: [start, p1End],
+      p2Range: [new Date(p1End.getTime()+86400000), p2End],
+      p3Range: [new Date(p2End.getTime()+86400000), p3End]
+    };
+  }
+
+  function fmtRange([a,b]){
+    const opts = {month:'short', day:'numeric'};
+    return a.toLocaleDateString('en-US',opts) + ' – ' + b.toLocaleDateString('en-US',opts);
+  }
+
+  function monthKey(d){ return d.getFullYear()+'-'+d.getMonth(); }
+
+  function buildCalendarHTML(schedule){
+    const byMonth = {};
+    schedule.days.forEach(d => {
+      const key = monthKey(d.date);
+      (byMonth[key] = byMonth[key] || []).push(d);
+    });
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    let html = '';
+    Object.keys(byMonth).sort((a,b) => {
+      const [ya,ma] = a.split('-').map(Number), [yb,mb] = b.split('-').map(Number);
+      return ya !== yb ? ya-yb : ma-mb;
+    }).forEach(key => {
+      const [y,m] = key.split('-').map(Number);
+      const entries = byMonth[key];
+      const dayMap = {};
+      entries.forEach(e => dayMap[e.date.getDate()] = e);
+      let startWeekday = new Date(y,m,1).getDay();
+      startWeekday = (startWeekday + 6) % 7;
+      const daysInMonth = new Date(y,m+1,0).getDate();
+
+      html += `<div class="cal-month"><h4>${monthNames[m]} ${y}</h4><div class="cal-grid">`;
+      ['M','T','W','T','F','S','S'].forEach(w => html += `<div class="cal-dow">${w}</div>`);
+      for (let i=0;i<startWeekday;i++) html += '<div class="cal-cell empty"></div>';
+
+      for (let dnum=1; dnum<=daysInMonth; dnum++){
+        const entry = dayMap[dnum];
+        if (!entry){ html += `<div class="cal-cell out"><span>${dnum}</span></div>`; continue; }
+        let cls = 'cal-cell';
+        let title = '';
+        if (entry.isTest){ cls += ' test'; title = 'Test day'; }
+        else if (entry.isStudyDay){
+          cls += ' study ' + entry.phase;
+          if (entry.isExam) cls += ' exam';
+          title = PHASE_LABELS[entry.phase] + (entry.isExam ? ' — Full-length exam' : '');
+        } else {
+          cls += ' rest';
+          title = 'Rest day';
+        }
+        html += `<div class="${cls}" title="${title}"><span>${dnum}</span>${entry.isExam?'<i>&#9733;</i>':''}${entry.isTest?'<i>&#127919;</i>':''}</div>`;
+      }
+      const totalCells = startWeekday + daysInMonth;
+      const remainder = totalCells % 7;
+      if (remainder !== 0) for (let i=0;i<7-remainder;i++) html += '<div class="cal-cell empty"></div>';
+      html += '</div></div>';
+    });
+    return html;
+  }
+
+  function fmtICSDate(d){
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}${m}${day}`;
+  }
+
+  function generateICS(schedule){
+    const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//The Asclepion//Study Schedule//EN'];
+    schedule.days.forEach(d => {
+      if (d.isTest){
+        lines.push('BEGIN:VEVENT');
+        lines.push('UID:'+d.date.getTime()+'-test@asclepion');
+        lines.push('DTSTART;VALUE=DATE:'+fmtICSDate(d.date));
+        lines.push('SUMMARY:MCAT Test Day');
+        lines.push('END:VEVENT');
+      } else if (d.isStudyDay){
+        lines.push('BEGIN:VEVENT');
+        lines.push('UID:'+d.date.getTime()+'-study@asclepion');
+        lines.push('DTSTART;VALUE=DATE:'+fmtICSDate(d.date));
+        const summary = d.isExam ? 'MCAT Full-Length Practice Exam' : 'MCAT Study — '+PHASE_LABELS[d.phase];
+        lines.push('SUMMARY:'+summary);
+        lines.push('END:VEVENT');
+      }
+    });
+    lines.push('END:VCALENDAR');
+    return lines.join('\r\n');
+  }
+
+  function renderScheduleOutput(schedule){
+    document.getElementById('schedule-output').style.display = 'block';
+    document.getElementById('sum-weeks').textContent = Math.ceil(schedule.totalDays/7);
+    document.getElementById('sum-studydays').textContent = schedule.studyDaysCount;
+    document.getElementById('sum-hours').textContent = schedule.totalHours;
+    document.getElementById('sum-exams').textContent = schedule.examCount;
+    document.getElementById('phase1-range').textContent = fmtRange(schedule.p1Range);
+    document.getElementById('phase2-range').textContent = fmtRange(schedule.p2Range);
+    document.getElementById('phase3-range').textContent = fmtRange(schedule.p3Range);
+    document.getElementById('calendar-container').innerHTML = buildCalendarHTML(schedule);
+
+    const warnEl = document.getElementById('schedule-warning');
+    if (schedule.totalDays < 14){
+      warnEl.textContent = 'Less than two weeks out — phases below will overlap heavily. Treat this as a rough guide, not a real plan for a compressed timeline.';
+      warnEl.style.display = 'block';
+    } else {
+      warnEl.style.display = 'none';
+    }
+  }
+
+  document.getElementById('schedule-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('schedule-error');
+    errEl.style.display = 'none';
+
+    const raw = dateInput.value.trim();
+    if (!raw){
+      errEl.textContent = 'Enter a test date in MM/DD/YYYY format.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const parsedDate = parseMMDDYYYY(raw);
+    if (!parsedDate){
+      errEl.textContent = 'That date doesn\'t look right — use MM/DD/YYYY, e.g. 09/15/2026.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const daysPerWeek = parseInt(document.getElementById('days-per-week').value, 10);
+    const hoursPerDay = parseFloat(document.getElementById('hours-per-day').value);
+
+    const result = computeSchedule(parsedDate, daysPerWeek, hoursPerDay);
+    if (result.error){
+      errEl.textContent = result.error; errEl.style.display = 'block';
+      document.getElementById('schedule-output').style.display = 'none';
+      return;
+    }
+    currentSchedule = result;
+    renderScheduleOutput(result);
+  });
+
+  document.getElementById('download-ics').addEventListener('click', () => {
+    if (!currentSchedule) return;
+    const ics = generateICS(currentSchedule);
+    const blob = new Blob([ics], {type:'text/calendar'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'asclepion-study-schedule.ics'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('print-schedule').addEventListener('click', () => window.print());
+</script>
+
+</body>
+</html>
