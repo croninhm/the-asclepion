@@ -106,6 +106,7 @@
   .card.disabled{opacity:0.6;cursor:default;}
   .card.disabled:hover{background:var(--surface);box-shadow:none;border-color:var(--border);}
   .card.disabled .go{color:var(--ink-soft);}
+  .card[role="button"]{cursor:pointer;}
 
   /* schedule tab */
   .schedule-form{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:10px;}
@@ -167,6 +168,43 @@
 
   footer{margin-top:50px;border-top:1px solid var(--border);padding:28px 0 56px;}
   footer p{font-size:13px;color:var(--ink-soft);max-width:70ch;margin:0 0 6px;}
+
+  /* AI flashcard modal */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);
+    z-index:100;align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:24px;
+  }
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .modal-header h3{font-family:'Fraunces',serif;font-size:20px;margin:0;color:var(--ink);}
+  .modal-close{background:none;border:none;color:var(--ink-soft);font-size:24px;cursor:pointer;line-height:1;padding:0 4px;}
+  .modal-close:hover{color:var(--ink);}
+  .modal-note{font-size:13.5px;color:var(--ink-soft);margin:0 0 14px;}
+  .modal textarea{
+    width:100%;font-family:'Inter',sans-serif;font-size:14px;padding:10px 12px;
+    border:1px solid var(--border);border-radius:6px;background:var(--surface-raised);color:var(--ink);
+    resize:vertical;margin-bottom:12px;
+  }
+  .modal textarea:focus{outline:1.5px solid var(--brand);border-color:var(--brand);}
+  .modal-actions{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+  .modal-actions button{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;padding:9px 16px;
+    border-radius:6px;border:none;background:var(--brand);color:#14161B;cursor:pointer;
+  }
+  .modal-actions button:hover{background:var(--brand-hover);}
+  .modal-actions button:disabled{opacity:0.6;cursor:default;}
+  .modal-status{font-size:13px;color:var(--ink-soft);}
+  .flashcard-item{
+    background:var(--surface-raised);border:1px solid var(--border);border-radius:8px;
+    padding:14px 16px;margin-bottom:10px;
+  }
+  .flashcard-item .q{font-weight:600;color:var(--ink);margin:0 0 6px;font-size:14.5px;}
+  .flashcard-item .a{color:var(--ink-soft);margin:0;font-size:14px;}
+  .modal-error{color:var(--error);font-size:13.5px;margin-bottom:12px;}
 
   @media (max-width:520px){
     header{padding:44px 0 28px;}
@@ -264,10 +302,10 @@
             <p>Search "MCAT" on AnkiWeb's shared deck library. MileDown, Jack Sparrow, and Mr. Pankow's Psych/Soc deck are the ones most students settle on.</p>
             <span class="go">ankiweb.net →</span>
           </a>
-          <div class="card disabled">
-            <div class="card-top"><h3>AI Flashcard Generator</h3><span class="tag wip">In progress</span></div>
-            <p>Paste your notes, get flashcards back, and draw from a shared deck bank other premeds are building. Not live yet.</p>
-            <span class="go">Check back soon</span>
+          <div class="card" id="ai-flashcard-card" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="card-top"><h3>AI Flashcard Generator</h3><span class="tag free">Free</span></div>
+            <p>Paste your notes, get flashcards back. A shared community deck bank is still on the way.</p>
+            <span class="go">Try it →</span>
           </div>
         </div>
       </div>
@@ -399,6 +437,23 @@
   <footer>
     <p>Independently maintained and not affiliated with, sponsored by, or endorsed by the AAMC, UWorld, or Kaplan. MCAT® is a registered trademark of the AAMC. Pricing and availability at linked sites can change. The study schedule is a general planning heuristic, not personalized academic advice.</p>
   </footer>
+</div>
+
+<!-- AI Flashcard Generator modal -->
+<div class="modal-overlay" id="flashcard-modal-overlay">
+  <div class="modal" id="flashcard-modal" role="dialog" aria-modal="true" aria-labelledby="flashcard-modal-title">
+    <div class="modal-header">
+      <h3 id="flashcard-modal-title">AI Flashcard Generator</h3>
+      <button class="modal-close" id="flashcard-modal-close" aria-label="Close">&times;</button>
+    </div>
+    <p class="modal-note">Paste study notes below. The AI will turn them into question-and-answer flashcards you can copy into Anki or wherever you keep your deck.</p>
+    <textarea id="flashcard-notes" placeholder="Paste your notes here (up to ~6000 characters)..." rows="8"></textarea>
+    <div class="modal-actions">
+      <button id="flashcard-generate-btn" type="button">Generate Flashcards</button>
+      <span id="flashcard-status" class="modal-status"></span>
+    </div>
+    <div id="flashcard-results"></div>
+  </div>
 </div>
 
 <script>
@@ -635,6 +690,76 @@
   });
 
   document.getElementById('print-schedule').addEventListener('click', () => window.print());
+
+  // ---- AI Flashcard Generator ----
+  const flashcardCard = document.getElementById('ai-flashcard-card');
+  const flashcardOverlay = document.getElementById('flashcard-modal-overlay');
+  const flashcardClose = document.getElementById('flashcard-modal-close');
+  const flashcardNotes = document.getElementById('flashcard-notes');
+  const flashcardGenerateBtn = document.getElementById('flashcard-generate-btn');
+  const flashcardStatus = document.getElementById('flashcard-status');
+  const flashcardResults = document.getElementById('flashcard-results');
+
+  function openFlashcardModal(){
+    flashcardOverlay.classList.add('active');
+    flashcardNotes.focus();
+  }
+  flashcardCard.addEventListener('click', openFlashcardModal);
+  flashcardCard.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openFlashcardModal(); }
+  });
+  flashcardClose.addEventListener('click', () => flashcardOverlay.classList.remove('active'));
+  flashcardOverlay.addEventListener('click', (e) => {
+    if (e.target === flashcardOverlay) flashcardOverlay.classList.remove('active');
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') flashcardOverlay.classList.remove('active');
+  });
+
+  function escapeHTML(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  flashcardGenerateBtn.addEventListener('click', async () => {
+    const notes = flashcardNotes.value.trim();
+    flashcardResults.innerHTML = '';
+    if (!notes){
+      flashcardStatus.textContent = 'Paste some notes first.';
+      return;
+    }
+    flashcardGenerateBtn.disabled = true;
+    flashcardStatus.textContent = 'Generating…';
+
+    try {
+      const res = await fetch('/.netlify/functions/generate-flashcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes })
+      });
+      const data = await res.json();
+
+      if (!res.ok){
+        flashcardStatus.textContent = '';
+        flashcardResults.innerHTML = `<p class="modal-error">${escapeHTML(data.error || 'Something went wrong.')}</p>`;
+        return;
+      }
+
+      flashcardStatus.textContent = `${data.flashcards.length} flashcards generated.`;
+      flashcardResults.innerHTML = data.flashcards.map(fc => `
+        <div class="flashcard-item">
+          <p class="q">${escapeHTML(fc.question)}</p>
+          <p class="a">${escapeHTML(fc.answer)}</p>
+        </div>
+      `).join('');
+    } catch (err) {
+      flashcardStatus.textContent = '';
+      flashcardResults.innerHTML = `<p class="modal-error">Couldn't reach the flashcard generator. Try again in a moment.</p>`;
+    } finally {
+      flashcardGenerateBtn.disabled = false;
+    }
+  });
 </script>
 
 </body>
