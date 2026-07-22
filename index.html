@@ -742,7 +742,8 @@
 
       if (!res.ok){
         flashcardStatus.textContent = '';
-        flashcardResults.innerHTML = `<p class="modal-error">${escapeHTML(data.error || 'Something went wrong.')}</p>`;
+        const detailLine = data.detail ? `<br><span style="font-size:12px;opacity:0.75;">${escapeHTML(data.detail)}</span>` : '';
+        flashcardResults.innerHTML = `<p class="modal-error">${escapeHTML(data.error || 'Something went wrong.')}${detailLine}</p>`;
         return;
       }
 
