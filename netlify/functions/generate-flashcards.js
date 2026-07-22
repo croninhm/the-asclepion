@@ -1,4 +1,4 @@
-const MODEL = "gemini-2.5-flash-lite";
+const MODEL = "gemini-flash-latest";
 const MAX_NOTES_LENGTH = 6000; // characters — keeps requests small, fast, and cheap
 
 exports.handler = async (event) => {
